@@ -1,15 +1,88 @@
-# Ansh & Riley Full-Stack Template
+# Task Manager with Eisenhower Matrix
 
-This is a full-stack template project for Software Composers to create  applications with AI.
+A modern task management application built with Next.js 14, TypeScript, and Tailwind CSS. Features include:
 
-## Getting started
-To create a new project, you go to `/paths`, choose from our list of Paths, and then use Cursor's Composer feature to quickly scaffold your project!
+- ⏱ Real-time task tracking
+- 🎯 Eisenhower Matrix for task prioritization
+- 📅 Calendar view of completed tasks
+- 🌓 Dark mode support
+- ⚡ Drag and drop task organization
+- 🔄 Automatic state persistence
 
-You can also edit the Path's prompt template to be whatever you like!
+## Features
 
-## Technologies used
-This doesn't really matter, but is useful for the AI to understand more about this project. We are using the following technologies
-- React with Next.js 14 App Router
-- TailwindCSS
-- Firebase Auth, Storage, and Database
-- Multiple AI endpoints including OpenAI, Anthropic, and Replicate using Vercel's AI SDK
+- **Task Management**
+  - Create, edit, and delete tasks
+  - Add descriptions and priorities
+  - Track time spent on tasks
+  - Mark tasks as complete
+
+- **Eisenhower Matrix**
+  - Organize tasks by urgency and importance
+  - Drag and drop interface
+  - Visual feedback for task status
+
+- **Time Tracking**
+  - Start/pause time tracking
+  - Real-time updates
+  - Persistent time records
+
+## Tech Stack
+
+- Next.js 14 (App Router)
+- TypeScript
+- Tailwind CSS
+- @hello-pangea/dnd (Drag and Drop)
+- Local Storage for persistence
+
+## Getting Started
+
+1. Clone the repository:
+```bash
+git clone [your-repo-url]
+cd [repo-name]
+```
+
+2. Install dependencies:
+```bash
+npm install
+# or
+yarn install
+# or
+pnpm install
+```
+
+3. Run the development server:
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+```
+
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── components/    # React components
+│   ├── api/          # API routes
+│   ├── lib/          # Utilities and hooks
+│   ├── page.tsx      # Main page
+│   └── layout.tsx    # Root layout
+├── lib/
+│   ├── contexts/     # React contexts
+│   ├── hooks/        # Custom hooks
+│   └── types/        # TypeScript types
+```
+
+## Contributing
+
+Feel free to submit issues and enhancement requests!
+
+## License
+
+MIT License - feel free to use this project as a template for your own task manager!

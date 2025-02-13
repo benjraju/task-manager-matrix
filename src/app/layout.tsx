@@ -1,4 +1,11 @@
-import "./globals.css";
+import './globals.css';
+import type { Metadata } from 'next';
+import { TaskProvider } from '@/lib/contexts/TaskContext';
+
+export const metadata: Metadata = {
+  title: 'Task Manager - Eisenhower Matrix',
+  description: 'A task management app with time tracking and Eisenhower matrix prioritization',
+};
 
 export default function RootLayout({
   children,
@@ -7,7 +14,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <TaskProvider>
+          {children}
+        </TaskProvider>
+      </body>
     </html>
   );
 }

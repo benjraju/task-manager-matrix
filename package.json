@@ -12,25 +12,42 @@
     "@ai-sdk/anthropic": "^0.0.48",
     "@ai-sdk/openai": "^0.0.54",
     "@deepgram/sdk": "^3.6.0",
+    "@hello-pangea/dnd": "^18.0.1",
+    "@heroicons/react": "^2.2.0",
     "ai": "^3.3.20",
+    "autoprefixer": "^10.4.20",
     "date-fns": "^3.6.0",
     "firebase": "^10.13.0",
     "framer-motion": "^11.3.31",
     "lucide-react": "^0.436.0",
-    "next": "14.2.7",
-    "react": "^18",
-    "react-dom": "^18",
+    "next": "^14.2.7",
+    "react": "^18.3.1",
+    "react-confetti": "^6.2.2",
+    "react-dom": "^18.3.1",
     "react-markdown": "^9.0.1",
     "replicate": "^0.32.0"
   },
   "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
+    "@types/node": "^20.17.18",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
     "eslint": "^8",
     "eslint-config-next": "14.2.7",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5"
-  }
+    "postcss": "^8.5.2",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.3"
+  },
+  "description": "This is a full-stack template project for Software Composers to create  applications with AI.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ansh/template-2.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ansh/template-2/issues"
+  },
+  "homepage": "https://github.com/ansh/template-2#readme"
 }
