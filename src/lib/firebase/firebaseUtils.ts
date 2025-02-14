@@ -130,3 +130,17 @@ export const getUserTasks = async (userId: string) => {
     return { tasks: [], error: error.message };
   }
 };
+
+// Generic document functions
+export const addDocument = async (collectionName: string, data: any) => {
+  try {
+    const docRef = await addDoc(collection(db, collectionName), {
+      ...data,
+      userId: auth.currentUser?.uid,
+      createdAt: serverTimestamp(),
+    });
+    return { id: docRef.id, error: null };
+  } catch (error: any) {
+    return { id: null, error: error.message };
+  }
+};
