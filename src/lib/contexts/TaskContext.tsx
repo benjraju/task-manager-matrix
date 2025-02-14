@@ -13,6 +13,7 @@ interface TaskContextType {
   deleteTask: (taskId: string) => Promise<void>;
   clearCompletedTasks: () => Promise<void>;
   getTasksByPriority: (priority: Priority) => Task[];
+  restoreTask: (taskId: string) => Promise<void>;
   loading: boolean;
   error: string | null;
 }
@@ -28,44 +29,51 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 
   const updateTask = useCallback(async (taskId: string, updates: Partial<Task>) => {
     try {
-      const { error } = await fbUpdateTask(taskId, updates);
+      // First find the existing task
+      const existingTask = tasks.find(t => t.id === taskId);
+      if (!existingTask) {
+        console.error('Task not found:', taskId);
+        return;
+      }
+
+      // Prepare the updates with status-specific changes
+      const finalUpdates = { ...updates };
+      
+      if (updates.status) {
+        if (updates.status === 'completed' && existingTask.status !== 'completed') {
+          finalUpdates.completedAt = new Date();
+          finalUpdates.isTracking = false;
+          delete lastUpdateTimeRef.current[taskId];
+        } else if (updates.status === 'in_progress' && existingTask.status === 'not_started') {
+          finalUpdates.startedAt = existingTask.startedAt || new Date();
+        }
+      }
+
+      if ('isTracking' in updates) {
+        if (updates.isTracking) {
+          lastUpdateTimeRef.current[taskId] = Date.now();
+        } else {
+          delete lastUpdateTimeRef.current[taskId];
+        }
+      }
+
+      const { error } = await fbUpdateTask(taskId, finalUpdates);
       
       if (error) {
+        console.error('Firebase update error:', error);
         setError(error);
         return;
       }
 
-      setTasks(prev => prev.map(task => {
-        if (task.id === taskId) {
-          const updatedTask = { ...task, ...updates };
-          
-          if (updates.status) {
-            if (updates.status === 'completed' && task.status !== 'completed') {
-              updatedTask.completedAt = new Date();
-              updatedTask.isTracking = false;
-              delete lastUpdateTimeRef.current[task.id];
-            } else if (updates.status === 'in_progress' && task.status === 'not_started') {
-              updatedTask.startedAt = updatedTask.startedAt || new Date();
-            }
-          }
-
-          if ('isTracking' in updates) {
-            if (updates.isTracking) {
-              lastUpdateTimeRef.current[task.id] = Date.now();
-            } else {
-              delete lastUpdateTimeRef.current[task.id];
-            }
-          }
-          
-          return updatedTask;
-        }
-        return task;
-      }));
+      setTasks(prev => prev.map(task =>
+        task.id === taskId ? { ...task, ...finalUpdates } : task
+      ));
       setError(null);
     } catch (err) {
+      console.error('Update error:', err);
       setError(err instanceof Error ? err.message : 'Failed to update task');
     }
-  }, []);
+  }, [tasks]);
 
   // Fetch tasks when user changes
   useEffect(() => {
@@ -213,6 +221,48 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     }
   }, [tasks]);
 
+  const restoreTask = useCallback(async (taskId: string) => {
+    try {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) {
+        console.error('Task not found:', taskId);
+        return;
+      }
+
+      // Create a clean update object that resets the task to its initial state
+      const { completedAt, startedAt, isTracking, status, totalTimeSpent, ...baseTask } = task;
+      const updates = {
+        ...baseTask,
+        status: 'not_started' as const,
+        isTracking: false,
+        totalTimeSpent: 0,
+        createdAt: new Date() // Reset creation date to now since it's a fresh start
+      };
+
+      console.log('Restoring task with updates:', updates);
+      const { error } = await fbUpdateTask(taskId, updates);
+      
+      if (error) {
+        console.error('Firebase update error:', error);
+        setError(error);
+        return;
+      }
+
+      setTasks(prev => prev.map(t =>
+        t.id === taskId ? { 
+          ...updates, 
+          completedAt: undefined, 
+          startedAt: undefined
+        } : t
+      ));
+      console.log('Task restored successfully');
+      setError(null);
+    } catch (err) {
+      console.error('Restore error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to restore task');
+    }
+  }, [tasks]);
+
   const value = {
     tasks,
     addTask,
@@ -221,6 +271,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     deleteTask,
     clearCompletedTasks,
     getTasksByPriority,
+    restoreTask,
     loading,
     error,
   };

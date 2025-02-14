@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Task } from '@/lib/types/task';
+import { Task, TaskStatus } from '@/lib/types/task';
 import { useTask } from '@/lib/contexts/TaskContext';
 
 interface TaskItemProps {
@@ -9,7 +9,7 @@ interface TaskItemProps {
 }
 
 export default function TaskItem({ task }: TaskItemProps) {
-  const { updateTask, deleteTask } = useTask();
+  const { updateTask, deleteTask, restoreTask } = useTask();
   const [isHovered, setIsHovered] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(task.totalTimeSpent || 0);
   const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(null);
@@ -100,12 +100,46 @@ export default function TaskItem({ task }: TaskItemProps) {
       stopTimer();
     }
     
-    updateTask(task.id, { ...task, status: newStatus });
+    const updates: Partial<Task> = {
+      status: newStatus,
+      ...(newStatus === 'completed' ? { 
+        completedAt: new Date(),
+        isTracking: false 
+      } : {}),
+      ...(newStatus === 'in_progress' && task.status === 'not_started' ? { 
+        startedAt: new Date() 
+      } : {})
+    };
+    
+    updateTask(task.id, updates);
   };
 
   const handleTimerToggle = () => {
     if (task.status === 'completed') return; // Don't allow timer for completed tasks
-    updateTask(task.id, { ...task, isTracking: !task.isTracking });
+    
+    const updates: Partial<Task> = {
+      isTracking: !task.isTracking
+    };
+
+    // If starting timer on a not_started task, also change status to in_progress
+    if (!task.isTracking && task.status === 'not_started') {
+      updates.status = 'in_progress';
+      updates.startedAt = new Date();
+    }
+    
+    updateTask(task.id, updates);
+  };
+
+  const handleRestore = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Restore clicked for task:', task.id);
+    try {
+      await restoreTask(task.id);
+      console.log('Task restored successfully');
+    } catch (error) {
+      console.error('Failed to restore task:', error);
+    }
   };
 
   return (
@@ -124,11 +158,52 @@ export default function TaskItem({ task }: TaskItemProps) {
                      ${getStatusColor()}`}
         />
         <div className="flex-grow min-w-0">
-          <h4 className="text-white font-medium truncate pr-6">
-            {task.title}
-          </h4>
+          <div className="flex items-center justify-between">
+            <h4 className={`text-white font-medium truncate ${task.status === 'completed' ? 'line-through opacity-50' : ''}`}>
+              {task.title}
+            </h4>
+            <div className="flex items-center gap-1 ml-4">
+              {task.status === ('completed' as TaskStatus) ? (
+                <button
+                  onClick={handleRestore}
+                  type="button"
+                  className="p-1.5 rounded-full bg-yellow-500/30 text-yellow-300 hover:bg-yellow-500/40 transition-colors duration-300 cursor-pointer"
+                  title="Restore task"
+                >
+                  ↩️
+                </button>
+              ) : (
+                <button
+                  onClick={handleTimerToggle}
+                  disabled={task.status === ('completed' as TaskStatus)}
+                  className={`p-1.5 rounded-full transition-colors duration-300
+                             ${task.isTracking 
+                               ? 'bg-emerald-500/30 text-emerald-300 hover:bg-emerald-500/40' 
+                               : task.status === ('completed' as TaskStatus)
+                                 ? 'bg-white/5 text-white/30 cursor-not-allowed'
+                                 : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    {task.isTracking ? (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    ) : (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    )}
+                  </svg>
+                </button>
+              )}
+              <button
+                onClick={() => deleteTask(task.id)}
+                className="p-1.5 rounded-full bg-white/10 text-white/70 hover:bg-red-500/30 hover:text-red-300 transition-colors duration-300"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
           {task.description && (
-            <p className="mt-1 text-sm text-white/80 line-clamp-2">
+            <p className={`mt-1 text-sm text-white/80 line-clamp-2 ${task.status === 'completed' ? 'line-through opacity-50' : ''}`}>
               {task.description}
             </p>
           )}
@@ -139,6 +214,11 @@ export default function TaskItem({ task }: TaskItemProps) {
                 <span className="ml-1 animate-pulse">●</span>
               )}
             </span>
+            {task.status === 'completed' && task.completedAt && (
+              <span className="text-white/40">
+                Completed {new Date(task.completedAt).toLocaleString()}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -149,36 +229,6 @@ export default function TaskItem({ task }: TaskItemProps) {
                    transition-transform duration-1000 ease-in-out rounded-lg
                    ${isHovered ? 'translate-x-full' : '-translate-x-full'}`}
       />
-
-      {/* Quick actions */}
-      <div className="absolute top-2 right-2 flex items-center gap-1">
-        <button
-          onClick={handleTimerToggle}
-          disabled={task.status === 'completed'}
-          className={`p-1.5 rounded-full transition-colors duration-300
-                     ${task.isTracking 
-                       ? 'bg-emerald-500/30 text-emerald-300 hover:bg-emerald-500/40' 
-                       : task.status === 'completed'
-                         ? 'bg-white/5 text-white/30 cursor-not-allowed'
-                         : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            {task.isTracking ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            )}
-          </svg>
-        </button>
-        <button
-          onClick={() => deleteTask(task.id)}
-          className="p-1.5 rounded-full bg-white/10 text-white/70 hover:bg-red-500/30 hover:text-red-300 transition-colors duration-300"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-        </button>
-      </div>
     </div>
   );
 } 

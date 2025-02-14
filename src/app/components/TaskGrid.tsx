@@ -5,7 +5,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useTask } from '@/lib/contexts/TaskContext';
 import { Priority, Task } from '@/lib/types/task';
 import TaskCard from '@/app/components/TaskCard';
-import TaskItem from './TaskItem';
+import TaskItem from '@/app/components/TaskItem';
 
 const priorityLabels: Record<Priority, { title: string; description: string }> = {
   'urgent-important': {
@@ -31,16 +31,20 @@ export default function TaskGrid() {
 
   // Filter tasks by their quadrant
   const urgentImportant = tasks.filter(task => 
-    task.priority === 'urgent-important' && task.status !== 'completed'
+    task.priority === 'urgent-important' &&
+    task.status !== 'completed'
   );
   const notUrgentImportant = tasks.filter(task => 
-    task.priority === 'not-urgent-important' && task.status !== 'completed'
+    task.priority === 'not-urgent-important' &&
+    task.status !== 'completed'
   );
   const urgentNotImportant = tasks.filter(task => 
-    task.priority === 'urgent-not-important' && task.status !== 'completed'
+    task.priority === 'urgent-not-important' &&
+    task.status !== 'completed'
   );
   const notUrgentNotImportant = tasks.filter(task => 
-    task.priority === 'not-urgent-not-important' && task.status !== 'completed'
+    task.priority === 'not-urgent-not-important' &&
+    task.status !== 'completed'
   );
 
   return (

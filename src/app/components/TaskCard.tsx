@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback } from 'react';
-import { Task } from '@/lib/types/task';
+import { Task, TaskStatus } from '@/lib/types/task';
 import { useTask } from '@/lib/contexts/TaskContext';
 import { useTimer } from '@/lib/hooks/useTimer';
 
@@ -10,7 +10,7 @@ interface TaskCardProps {
 }
 
 export default function TaskCard({ task }: TaskCardProps) {
-  const { updateTask, deleteTask } = useTask();
+  const { updateTask, deleteTask, restoreTask } = useTask();
 
   const handleTick = useCallback((currentTime: number) => {
     updateTask(task.id, { totalTimeSpent: currentTime });
@@ -23,7 +23,7 @@ export default function TaskCard({ task }: TaskCardProps) {
   });
 
   const toggleStatus = () => {
-    const newStatus = task.status === 'not_started' 
+    const newStatus: TaskStatus = task.status === 'not_started' 
       ? 'in_progress' 
       : task.status === 'in_progress' 
         ? 'completed' 
@@ -42,7 +42,7 @@ export default function TaskCard({ task }: TaskCardProps) {
     if (!task.isTracking && task.status === 'not_started') {
       updateTask(task.id, {
         isTracking: true,
-        status: 'in_progress',
+        status: 'in_progress' as const,
         startedAt: new Date()
       });
     } else {
@@ -54,6 +54,10 @@ export default function TaskCard({ task }: TaskCardProps) {
 
   const handleDelete = () => {
     deleteTask(task.id);
+  };
+
+  const handleRestore = () => {
+    restoreTask(task.id);
   };
 
   const getStatusColor = () => {
@@ -110,18 +114,28 @@ export default function TaskCard({ task }: TaskCardProps) {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={toggleTracking}
-            className={`p-1.5 rounded-md ${
-              task.isTracking
-                ? 'text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/50'
-                : 'text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400'
-            }`}
-            disabled={task.status === 'completed'}
-            title={task.isTracking ? 'Pause tracking' : 'Start tracking'}
-          >
-            {task.isTracking ? '⏸' : '▶️'}
-          </button>
+          {task.status === ('completed' as TaskStatus) ? (
+            <button
+              onClick={handleRestore}
+              className="p-1.5 rounded-md text-yellow-600 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:bg-yellow-900/20"
+              title="Restore task"
+            >
+              ↩️
+            </button>
+          ) : (
+            <button
+              onClick={toggleTracking}
+              className={`p-1.5 rounded-md ${
+                task.isTracking
+                  ? 'text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/50'
+                  : 'text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400'
+              }`}
+              disabled={task.status === 'completed'}
+              title={task.isTracking ? 'Pause tracking' : 'Start tracking'}
+            >
+              {task.isTracking ? '⏸' : '▶️'}
+            </button>
+          )}
           <button
             onClick={handleDelete}
             className="p-1.5 rounded-md text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-opacity"

@@ -151,13 +151,14 @@ export default function FocusTimer() {
     const finalTime = elapsedTime;
 
     try {
-      await updateTask(selectedTask.id, {
-        ...selectedTask,
-        status: 'completed',
+      const updates = {
+        status: 'completed' as const,
         isTracking: false,
         totalTimeSpent: (selectedTask.totalTimeSpent || 0) + finalTime,
         completedAt: new Date()
-      });
+      };
+
+      await updateTask(selectedTask.id, updates);
 
       // Play completion sound
       const audio = new Audio('/sounds/task-complete.mp3');
