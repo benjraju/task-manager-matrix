@@ -1,6 +1,10 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { TaskProvider } from '@/lib/contexts/TaskContext';
+import { AuthProvider } from '@/lib/contexts/AuthContext';
+import { Inter } from 'next/font/google';
+
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Task Manager - Eisenhower Matrix',
@@ -14,10 +18,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
-        <TaskProvider>
-          {children}
-        </TaskProvider>
+      <body className={inter.className}>
+        <AuthProvider>
+          <TaskProvider>
+            {children}
+          </TaskProvider>
+        </AuthProvider>
       </body>
     </html>
   );

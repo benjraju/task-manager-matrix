@@ -1,54 +1,132 @@
-import { auth, db, storage } from "./firebase";
 import {
-  signOut,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
   GoogleAuthProvider,
   signInWithPopup,
-} from "firebase/auth";
+  User,
+} from 'firebase/auth';
 import {
   collection,
   addDoc,
-  getDocs,
-  doc,
   updateDoc,
   deleteDoc,
-} from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+  doc,
+  query,
+  where,
+  getDocs,
+  DocumentData,
+  serverTimestamp,
+} from 'firebase/firestore';
+import { auth, db } from './firebase';
+import { Task } from '@/lib/types/task';
 
-// Auth functions
-export const logoutUser = () => signOut(auth);
-
-export const signInWithGoogle = async () => {
-  const provider = new GoogleAuthProvider();
+// Test database connection
+export const testDatabaseConnection = async () => {
   try {
-    const result = await signInWithPopup(auth, provider);
-    return result.user;
+    const testDoc = await addDoc(collection(db, 'test_connection'), {
+      timestamp: serverTimestamp(),
+      message: 'Test connection successful'
+    });
+    console.log('Database connection successful, test document ID:', testDoc.id);
+    await deleteDoc(doc(db, 'test_connection', testDoc.id));
+    return true;
   } catch (error) {
-    console.error("Error signing in with Google", error);
-    throw error;
+    console.error('Database connection error:', error);
+    return false;
   }
 };
 
-// Firestore functions
-export const addDocument = (collectionName: string, data: any) =>
-  addDoc(collection(db, collectionName), data);
-
-export const getDocuments = async (collectionName: string) => {
-  const querySnapshot = await getDocs(collection(db, collectionName));
-  return querySnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }));
+// Authentication functions
+export const signUp = async (email: string, password: string) => {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    return { user: userCredential.user, error: null };
+  } catch (error: any) {
+    return { user: null, error: error.message };
+  }
 };
 
-export const updateDocument = (collectionName: string, id: string, data: any) =>
-  updateDoc(doc(db, collectionName, id), data);
+export const signIn = async (email: string, password: string) => {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    return { user: userCredential.user, error: null };
+  } catch (error: any) {
+    return { user: null, error: error.message };
+  }
+};
 
-export const deleteDocument = (collectionName: string, id: string) =>
-  deleteDoc(doc(db, collectionName, id));
+export const signInWithGoogle = async () => {
+  try {
+    const provider = new GoogleAuthProvider();
+    const userCredential = await signInWithPopup(auth, provider);
+    return { user: userCredential.user, error: null };
+  } catch (error: any) {
+    return { user: null, error: error.message };
+  }
+};
 
-// Storage functions
-export const uploadFile = async (file: File, path: string) => {
-  const storageRef = ref(storage, path);
-  await uploadBytes(storageRef, file);
-  return getDownloadURL(storageRef);
+export const signOut = async () => {
+  try {
+    await firebaseSignOut(auth);
+    return { error: null };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+};
+
+// Task management functions
+export const addTask = async (taskData: Omit<Task, 'id'>) => {
+  try {
+    const docRef = await addDoc(collection(db, 'tasks'), {
+      ...taskData,
+      userId: auth.currentUser?.uid,
+    });
+    return { id: docRef.id, error: null };
+  } catch (error: any) {
+    return { id: null, error: error.message };
+  }
+};
+
+export const updateTask = async (taskId: string, taskData: Partial<Task>) => {
+  try {
+    const taskRef = doc(db, 'tasks', taskId);
+    await updateDoc(taskRef, taskData);
+    return { error: null };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+};
+
+export const deleteTask = async (taskId: string) => {
+  try {
+    await deleteDoc(doc(db, 'tasks', taskId));
+    return { error: null };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+};
+
+export const getUserTasks = async (userId: string) => {
+  try {
+    const tasksQuery = query(
+      collection(db, 'tasks'),
+      where('userId', '==', userId)
+    );
+    const querySnapshot = await getDocs(tasksQuery);
+    const tasks: Task[] = [];
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      tasks.push({
+        ...data,
+        id: doc.id,
+        createdAt: data.createdAt?.toDate(),
+        startedAt: data.startedAt?.toDate(),
+        completedAt: data.completedAt?.toDate(),
+      } as Task);
+    });
+    return { tasks, error: null };
+  } catch (error: any) {
+    return { tasks: [], error: error.message };
+  }
 };
