@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { TaskProvider } from '@/lib/contexts/TaskContext';
 import { AuthProvider } from '@/lib/contexts/AuthContext';
 import { Inter } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/react';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -25,6 +26,7 @@ export default function RootLayout({
             {children}
           </TaskProvider>
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
