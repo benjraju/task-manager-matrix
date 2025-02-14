@@ -61,9 +61,9 @@ export default function TaskCalendar({ tasks }: TaskCalendarProps) {
   }, [today]);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 space-y-2 sm:space-y-0">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
           {today.toLocaleString('default', { month: 'long', year: 'numeric' })}
         </h2>
         <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
@@ -79,9 +79,9 @@ export default function TaskCalendar({ tasks }: TaskCalendarProps) {
         {weekDays.map(day => (
           <div
             key={day}
-            className="bg-gray-100 dark:bg-gray-800 p-2 text-center text-sm font-medium text-gray-600 dark:text-gray-300"
+            className="bg-gray-100 dark:bg-gray-800 p-1 sm:p-2 text-center text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300"
           >
-            {day}
+            {day.slice(0, 3)}
           </div>
         ))}
 
@@ -95,7 +95,7 @@ export default function TaskCalendar({ tasks }: TaskCalendarProps) {
             <div
               key={date.toISOString()}
               className={`
-                min-h-[100px] bg-white dark:bg-gray-800 p-2
+                min-h-[60px] sm:min-h-[100px] bg-white dark:bg-gray-800 p-1 sm:p-2
                 ${isToday ? 'ring-2 ring-blue-500 dark:ring-blue-400' : ''}
               `}
             >

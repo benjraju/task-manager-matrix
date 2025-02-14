@@ -43,18 +43,18 @@ export default function TaskGrid() {
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="p-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+      <div className="p-4 sm:p-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">
           Eisenhower Matrix
         </h2>
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           {quadrants.map(({ title, priority, description }) => (
             <div
               key={priority}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700"
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700"
             >
               <div className="mb-4">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
                   {title}
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">

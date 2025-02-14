@@ -27,20 +27,20 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+      <div className="max-w-7xl mx-auto px-4 py-4 sm:py-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 space-y-4 sm:space-y-0">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
             Task Manager
           </h1>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <span className="text-sm text-gray-600 dark:text-gray-300">
               {activeTasks.length} active tasks
             </span>
-            <div className="flex items-center">
-              <span className="mr-4 text-gray-600 dark:text-gray-300">{user.email}</span>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+              <span className="text-sm text-gray-600 dark:text-gray-300">{user.email}</span>
               <button
                 onClick={handleSignOut}
-                className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="w-full sm:w-auto bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
                 Sign out
               </button>
@@ -50,13 +50,13 @@ export default function Dashboard() {
 
         <AddTaskForm />
         
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm mb-6 sm:mb-8">
           <TaskGrid />
         </div>
 
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
           <CompletedTasks tasks={tasks} />
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6">
             <TaskCalendar tasks={tasks} />
           </div>
         </div>
