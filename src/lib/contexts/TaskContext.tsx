@@ -11,6 +11,7 @@ interface TaskContextType {
   updateTask: (taskId: string, updates: Partial<Task>) => Promise<void>;
   moveTask: (taskId: string, newPriority: Priority) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;
+  clearCompletedTasks: () => Promise<void>;
   getTasksByPriority: (priority: Priority) => Task[];
   loading: boolean;
   error: string | null;
@@ -198,12 +199,25 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     return tasks.filter(task => task.priority === priority);
   }, [tasks]);
 
+  const clearCompletedTasks = useCallback(async () => {
+    try {
+      const completedTasks = tasks.filter(task => task.status === 'completed');
+      const deletePromises = completedTasks.map(task => fbDeleteTask(task.id));
+      await Promise.all(deletePromises);
+      setTasks(prev => prev.filter(task => task.status !== 'completed'));
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to clear completed tasks');
+    }
+  }, [tasks]);
+
   const value = {
     tasks,
     addTask,
     updateTask,
     moveTask,
     deleteTask,
+    clearCompletedTasks,
     getTasksByPriority,
     loading,
     error,
