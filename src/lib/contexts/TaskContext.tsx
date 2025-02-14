@@ -26,6 +26,47 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const lastUpdateTimeRef = React.useRef<Record<string, number>>({});
 
+  const updateTask = useCallback(async (taskId: string, updates: Partial<Task>) => {
+    try {
+      const { error } = await fbUpdateTask(taskId, updates);
+      
+      if (error) {
+        setError(error);
+        return;
+      }
+
+      setTasks(prev => prev.map(task => {
+        if (task.id === taskId) {
+          const updatedTask = { ...task, ...updates };
+          
+          if (updates.status) {
+            if (updates.status === 'completed' && task.status !== 'completed') {
+              updatedTask.completedAt = new Date();
+              updatedTask.isTracking = false;
+              delete lastUpdateTimeRef.current[task.id];
+            } else if (updates.status === 'in_progress' && task.status === 'not_started') {
+              updatedTask.startedAt = updatedTask.startedAt || new Date();
+            }
+          }
+
+          if ('isTracking' in updates) {
+            if (updates.isTracking) {
+              lastUpdateTimeRef.current[task.id] = Date.now();
+            } else {
+              delete lastUpdateTimeRef.current[task.id];
+            }
+          }
+          
+          return updatedTask;
+        }
+        return task;
+      }));
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update task');
+    }
+  }, []);
+
   // Fetch tasks when user changes
   useEffect(() => {
     const fetchTasks = async () => {
@@ -120,47 +161,6 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       setError(err instanceof Error ? err.message : 'Failed to add task');
     }
   }, [user]);
-
-  const updateTask = useCallback(async (taskId: string, updates: Partial<Task>) => {
-    try {
-      const { error } = await fbUpdateTask(taskId, updates);
-      
-      if (error) {
-        setError(error);
-        return;
-      }
-
-      setTasks(prev => prev.map(task => {
-        if (task.id === taskId) {
-          const updatedTask = { ...task, ...updates };
-          
-          if (updates.status) {
-            if (updates.status === 'completed' && task.status !== 'completed') {
-              updatedTask.completedAt = new Date();
-              updatedTask.isTracking = false;
-              delete lastUpdateTimeRef.current[task.id];
-            } else if (updates.status === 'in_progress' && task.status === 'not_started') {
-              updatedTask.startedAt = updatedTask.startedAt || new Date();
-            }
-          }
-
-          if ('isTracking' in updates) {
-            if (updates.isTracking) {
-              lastUpdateTimeRef.current[task.id] = Date.now();
-            } else {
-              delete lastUpdateTimeRef.current[task.id];
-            }
-          }
-          
-          return updatedTask;
-        }
-        return task;
-      }));
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update task');
-    }
-  }, []);
 
   const moveTask = useCallback(async (taskId: string, newPriority: Priority) => {
     try {
