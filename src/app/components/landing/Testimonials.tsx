@@ -28,7 +28,7 @@ export default function Testimonials() {
             {testimonials.map((testimonial) => (
               <figure key={testimonial.author} className="rounded-2xl bg-gray-50 p-8">
                 <blockquote className="text-gray-900">
-                  <p className="text-lg font-semibold leading-8">"{testimonial.quote}"</p>
+                  <p className="text-lg font-semibold leading-8">&ldquo;{testimonial.quote}&rdquo;</p>
                 </blockquote>
                 <figcaption className="mt-6 flex items-center gap-x-4">
                   <div>

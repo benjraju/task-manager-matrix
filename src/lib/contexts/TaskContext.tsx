@@ -59,27 +59,27 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     const trackingTasks = tasks.filter(task => task.isTracking);
     if (trackingTasks.length === 0) return;
 
+    // Store the current time for each tracking task
+    const currentTime = Date.now();
     trackingTasks.forEach(task => {
       if (!lastUpdateTimeRef.current[task.id]) {
-        lastUpdateTimeRef.current[task.id] = Date.now();
+        lastUpdateTimeRef.current[task.id] = currentTime;
       }
     });
 
     const intervalId = setInterval(async () => {
       const now = Date.now();
 
-      for (const task of tasks) {
+      for (const task of trackingTasks) {
         if (task.isTracking) {
           const lastUpdate = lastUpdateTimeRef.current[task.id] || now;
           const timeDiff = Math.floor((now - lastUpdate) / 1000);
           
           if (timeDiff > 0) {
             lastUpdateTimeRef.current[task.id] = now;
-            const updatedTask = {
-              ...task,
-              totalTimeSpent: task.totalTimeSpent + timeDiff
-            };
-            await updateTask(task.id, { totalTimeSpent: updatedTask.totalTimeSpent });
+            await updateTask(task.id, { 
+              totalTimeSpent: task.totalTimeSpent + timeDiff 
+            });
           }
         }
       }
@@ -87,13 +87,15 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       clearInterval(intervalId);
+      // Clean up tracking tasks that are no longer being tracked
+      const currentTrackingIds = new Set(trackingTasks.map(t => t.id));
       Object.keys(lastUpdateTimeRef.current).forEach(taskId => {
-        if (!trackingTasks.some(task => task.id === taskId)) {
+        if (!currentTrackingIds.has(taskId)) {
           delete lastUpdateTimeRef.current[taskId];
         }
       });
     };
-  }, [tasks]);
+  }, [tasks, updateTask]);
 
   const addTask = useCallback(async (task: Task) => {
     if (!user) return;

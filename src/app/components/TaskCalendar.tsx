@@ -37,7 +37,7 @@ export default function TaskCalendar({ tasks }: TaskCalendarProps) {
     }, {} as Record<string, Task[]>);
 
     return { days, tasksByDate };
-  }, [tasks]);
+  }, [tasks, today]);
 
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -58,7 +58,7 @@ export default function TaskCalendar({ tasks }: TaskCalendarProps) {
 
   const calendarDays = useMemo(() => {
     // Calendar generation logic
-  }, [today]);
+  }, []);
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6">
