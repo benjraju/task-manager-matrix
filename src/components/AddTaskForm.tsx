@@ -14,7 +14,16 @@ export default function AddTaskForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (title.trim()) {
-      addTask(title.trim(), description.trim() || undefined, priority);
+      addTask({
+        title: title.trim(),
+        description: description.trim() || undefined,
+        priority,
+        status: 'not_started',
+        createdAt: new Date(),
+        id: '', // This will be set by Firebase
+        totalTimeSpent: 0,
+        isTracking: false
+      });
       setTitle('');
       setDescription('');
       setIsOpen(false);
