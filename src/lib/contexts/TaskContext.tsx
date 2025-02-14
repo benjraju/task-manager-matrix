@@ -223,19 +223,6 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     error,
   };
 
-  useEffect(() => {
-    const currentLastUpdateTime = lastUpdateTimeRef.current;
-    
-    const interval = setInterval(() => {
-      if (currentLastUpdateTime !== lastUpdateTimeRef.current) {
-        updateTask();
-        lastUpdateTimeRef.current = currentLastUpdateTime;
-      }
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, [updateTask]);
-
   return (
     <TaskContext.Provider value={value}>
       {children}
