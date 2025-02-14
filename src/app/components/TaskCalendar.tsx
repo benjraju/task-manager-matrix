@@ -56,6 +56,10 @@ export default function TaskCalendar({ tasks }: TaskCalendarProps) {
     return `${minutes}m`;
   };
 
+  const calendarDays = useMemo(() => {
+    // Calendar generation logic
+  }, [today]);
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
       <div className="flex items-center justify-between mb-6">

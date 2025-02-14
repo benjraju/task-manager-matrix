@@ -64,7 +64,7 @@ export default function AddTaskForm() {
               <option value="urgent-important">Urgent & Important (Do First)</option>
               <option value="not-urgent-important">Not Urgent & Important (Schedule)</option>
               <option value="urgent-not-important">Urgent & Not Important (Delegate)</option>
-              <option value="not-urgent-not-important">Not Urgent & Not Important (Don't Do)</option>
+              <option value="not-urgent-not-important">Not Urgent & Not Important (Don&apos;t Do)</option>
             </select>
           </div>
 

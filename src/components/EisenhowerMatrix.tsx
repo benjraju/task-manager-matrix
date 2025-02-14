@@ -50,7 +50,7 @@ export default function EisenhowerMatrix({ tasks, onUpdateTask }: EisenhowerMatr
 
       {/* Not Urgent & Not Important */}
       <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
-        <h2 className="text-lg font-semibold mb-4 text-green-800 dark:text-green-200">Don't Do</h2>
+        <h2 className="text-lg font-semibold mb-4 text-green-800 dark:text-green-200">Don&apos;t Do</h2>
         <div className="space-y-2">
           {getTasksByPriority('not-urgent-not-important').map(task => (
             <TaskCard key={task.id} task={task} onUpdateTask={onUpdateTask} />
