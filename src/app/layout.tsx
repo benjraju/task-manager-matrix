@@ -1,22 +1,23 @@
 import './globals.css';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { TaskProvider } from '@/lib/contexts/TaskContext';
 import { AuthProvider } from '@/lib/contexts/AuthContext';
 import { Inter } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/react';
+import { FocusProvider } from '@/lib/contexts/FocusContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Task Manager - Eisenhower Matrix',
-  description: 'A task management app with time tracking and Eisenhower matrix prioritization',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
+  title: 'Matrix Task Manager',
+  description: 'A Matrix-themed task management system',
 };
 
-export const viewport = {
+export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
@@ -29,7 +30,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <AuthProvider>
           <TaskProvider>
-            {children}
+            <FocusProvider>
+              {children}
+            </FocusProvider>
           </TaskProvider>
         </AuthProvider>
         <Analytics />
