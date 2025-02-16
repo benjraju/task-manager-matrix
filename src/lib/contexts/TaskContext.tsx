@@ -236,7 +236,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
         status: 'not_started' as const,
         isTracking: false,
         totalTimeSpent: 0,
-        createdAt: new Date() // Reset creation date to now since it's a fresh start
+        createdAt: new Date().toISOString() // Convert Date to ISO string format
       };
 
       console.log('Restoring task with updates:', updates);
