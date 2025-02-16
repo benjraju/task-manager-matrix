@@ -3,10 +3,12 @@
 import { useState } from 'react';
 import { Priority, TaskStatus } from '@/lib/types/task';
 import { useTaskData } from '@/lib/contexts/TaskDataContext';
+import { useAuth } from '@/lib/contexts/AuthContext';
 import { TASK_PRIORITIES, PRIORITY_LABELS } from '@/lib/constants/taskConstants';
 
 export default function AddTaskForm() {
   const { addTask } = useTaskData();
+  const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<Priority>('urgent-important');
@@ -14,7 +16,7 @@ export default function AddTaskForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (title.trim()) {
+    if (title.trim() && user) {
       addTask({
         title: title.trim(),
         description: description.trim() || undefined,
@@ -24,6 +26,7 @@ export default function AddTaskForm() {
         isTracking: false,
         startedAt: undefined,
         completedAt: undefined,
+        userId: user.uid,
       });
       setTitle('');
       setDescription('');
