@@ -16,7 +16,8 @@ export class TaskService {
         completedAt: task.completedAt,
         totalTimeSpent: 0,
         isTracking: false,
-        createdAt: new Date()
+        createdAt: new Date().toISOString(),
+        userId: task.userId
       };
 
       const { id, error } = await fbAddTask(baseTask);
