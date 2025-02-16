@@ -19,13 +19,14 @@ export const formatTaskDuration = (seconds: number): string => {
   return parts.length > 0 ? parts.join(' ') : '0s';
 };
 
-export const formatDate = (date: Date): string => {
+export const formatDate = (date: Date | string): string => {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
   return new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
     hour: 'numeric',
     minute: 'numeric'
-  }).format(date);
+  }).format(dateObj);
 };
 
 export const enrichTaskWithTimeInfo = (task: Task): TaskWithTimeInfo => {
