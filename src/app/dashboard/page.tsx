@@ -8,12 +8,12 @@ import TaskGrid from '@/app/components/TaskGrid';
 import CompletedTasks from '@/app/components/CompletedTasks';
 import TaskCalendar from '@/app/components/TaskCalendar';
 import Link from 'next/link';
-import { useTask } from '@/lib/contexts/TaskContext';
+import { useTaskData } from '@/lib/contexts/TaskDataContext';
 import { motion } from 'framer-motion';
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
-  const { tasks } = useTask();
+  const { tasks } = useTaskData();
   const router = useRouter();
   const activeTasks = tasks.filter(task => task.status !== 'completed');
 
@@ -43,10 +43,10 @@ export default function Dashboard() {
                 Control the system. Manage your reality.
               </p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <Link
                 href="/focus"
-                className="inline-flex items-center px-6 py-3 rounded-xl bg-[#78A892] text-black font-mono 
+                className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 rounded-xl bg-[#78A892] text-black font-mono 
                          hover:bg-[#5C8B75] transition-all duration-300 hover:scale-105"
               >
                 <svg
@@ -63,6 +63,27 @@ export default function Dashboard() {
                   />
                 </svg>
                 Enter Focus Mode
+              </Link>
+              <Link
+                href="/oracle"
+                className="inline-flex items-center px-6 py-3 rounded-xl border border-[#78A892]/20 
+                         text-[#78A892] font-mono hover:bg-[#78A892]/10 transition-all duration-300
+                         hover:border-[#78A892]/40 hover:scale-105"
+              >
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                Oracle
               </Link>
               <Link
                 href="/analytics"

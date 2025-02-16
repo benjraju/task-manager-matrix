@@ -1,108 +1,105 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useTask } from '@/lib/contexts/TaskContext';
+import { useState } from 'react';
 import { Priority, TaskStatus } from '@/lib/types/task';
+import { useTaskData } from '@/lib/contexts/TaskDataContext';
+import { TASK_PRIORITIES, PRIORITY_LABELS } from '@/lib/constants/taskConstants';
 
 export default function AddTaskForm() {
-  const { addTask } = useTask();
+  const { addTask } = useTaskData();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<Priority>('urgent-important');
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!title.trim()) return;
-
-    const newTask = {
-      id: Date.now().toString(),
-      title: title.trim(),
-      description: description.trim() || '',
-      priority,
-      status: 'not_started' as TaskStatus,
-      createdAt: new Date(),
-      totalTimeSpent: 0,
-      isTracking: false,
-    };
-
-    addTask(newTask);
-    setTitle('');
-    setDescription('');
-    setPriority('urgent-important');
-  };
-
-  const priorityLabels: Record<Priority, string> = {
-    'urgent-important': 'Urgent & Important',
-    'not-urgent-important': 'Not Urgent & Important',
-    'urgent-not-important': 'Urgent & Not Important',
-    'not-urgent-not-important': 'Not Urgent & Not Important'
+    if (title.trim()) {
+      addTask({
+        title: title.trim(),
+        description: description.trim() || undefined,
+        priority,
+        status: 'not_started' as TaskStatus,
+        totalTimeSpent: 0,
+        isTracking: false,
+        startedAt: undefined,
+        completedAt: undefined,
+      });
+      setTitle('');
+      setDescription('');
+      setIsOpen(false);
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label htmlFor="title" className="block text-sm font-medium text-[#E6EFE9] mb-1">
-          Task Title
-        </label>
-        <input
-          type="text"
-          id="title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="w-full px-4 py-2 bg-[#1a1d1b]/60 text-[#E6EFE9] rounded-lg border border-[#78A892]/20
-                   focus:border-[#78A892] focus:ring-2 focus:ring-[#78A892]/20 
-                   placeholder-[#E6EFE9]/30 transition-all duration-300"
-          placeholder="Enter task title"
-          required
-        />
-      </div>
-
-      <div>
-        <label htmlFor="description" className="block text-sm font-medium text-[#E6EFE9] mb-1">
-          Description (optional)
-        </label>
-        <textarea
-          id="description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="w-full px-4 py-2 bg-[#1a1d1b]/60 text-[#E6EFE9] rounded-lg border border-[#78A892]/20
-                   focus:border-[#78A892] focus:ring-2 focus:ring-[#78A892]/20 
-                   placeholder-[#E6EFE9]/30 transition-all duration-300"
-          placeholder="Enter task description"
-          rows={3}
-        />
-      </div>
-
-      <div>
-        <label htmlFor="priority" className="block text-sm font-medium text-[#E6EFE9] mb-1">
-          Priority
-        </label>
-        <select
-          id="priority"
-          value={priority}
-          onChange={(e) => setPriority(e.target.value as Priority)}
-          className="w-full px-4 py-2 bg-[#1a1d1b]/60 text-[#E6EFE9] rounded-lg border border-[#78A892]/20
-                   focus:border-[#78A892] focus:ring-2 focus:ring-[#78A892]/20 
-                   transition-all duration-300"
-          required
+    <div className="mb-6">
+      {!isOpen ? (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="w-full p-4 text-left text-[#78A892]/60 border-2 border-dashed border-[#78A892]/20 
+                   rounded-lg hover:border-[#78A892]/40 transition-colors font-mono"
         >
-          {Object.entries(priorityLabels).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
-      </div>
+          + Add new task...
+        </button>
+      ) : (
+        <form onSubmit={handleSubmit} className="bg-[#1a1d1b] rounded-xl border border-[#78A892]/20 p-6">
+          <div className="mb-4">
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Task title"
+              className="w-full p-2 bg-black/50 border border-[#78A892]/20 rounded-lg text-[#78A892] 
+                       placeholder-[#78A892]/40 focus:border-[#78A892] outline-none font-mono"
+              autoFocus
+            />
+          </div>
+          
+          <div className="mb-4">
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Description (optional)"
+              className="w-full p-2 bg-black/50 border border-[#78A892]/20 rounded-lg text-[#78A892] 
+                       placeholder-[#78A892]/40 focus:border-[#78A892] outline-none resize-none h-24 font-mono"
+            />
+          </div>
 
-      <button
-        type="submit"
-        className="w-full px-6 py-3 bg-[#78A892] text-white rounded-lg font-semibold
-                 hover:bg-[#92B4A7] transition-all duration-300 shadow-lg
-                 focus:ring-2 focus:ring-[#78A892]/50 focus:ring-offset-2 focus:ring-offset-[#1a1d1b]"
-      >
-        Add Task
-      </button>
-    </form>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-[#78A892]/80 mb-2 font-mono">
+              Priority (Eisenhower Matrix)
+            </label>
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value as Priority)}
+              className="w-full p-2 bg-black/50 border border-[#78A892]/20 rounded-lg text-[#78A892] 
+                       focus:border-[#78A892] outline-none font-mono"
+            >
+              {Object.entries(TASK_PRIORITIES).map(([key, value]) => (
+                <option key={key} value={value}>
+                  {PRIORITY_LABELS[value]}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex justify-end space-x-2">
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="px-6 py-3 text-[#78A892] hover:bg-[#78A892]/10 rounded-lg transition-colors font-mono"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-3 bg-[#78A892] text-black rounded-lg hover:bg-[#5C8B75] transition-colors font-mono"
+            >
+              Add Task
+            </button>
+          </div>
+        </form>
+      )}
+    </div>
   );
 } 

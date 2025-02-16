@@ -1,81 +1,19 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { Task, TaskStatus } from '@/lib/types/task';
-import { useTask } from '@/lib/contexts/TaskContext';
+import { useTaskData } from '@/lib/contexts/TaskDataContext';
+import { useTaskTracking } from '@/lib/contexts/TaskTrackingContext';
+import { formatTaskDuration } from '@/lib/utils/taskUtils';
 
 interface TaskItemProps {
   task: Task;
 }
 
 export default function TaskItem({ task }: TaskItemProps) {
-  const { updateTask, deleteTask, restoreTask } = useTask();
+  const { updateTask, deleteTask } = useTaskData();
+  const { startTracking, stopTracking, getTrackedTime } = useTaskTracking();
   const [isHovered, setIsHovered] = useState(false);
-  const [elapsedTime, setElapsedTime] = useState(task.totalTimeSpent || 0);
-  const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(null);
-
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const remainingSeconds = seconds % 60;
-
-    if (hours > 0) {
-      return `${hours}h ${minutes}m ${remainingSeconds}s`;
-    }
-    if (minutes > 0) {
-      return `${minutes}m ${remainingSeconds}s`;
-    }
-    return `${remainingSeconds}s`;
-  };
-
-  const startTimer = useCallback(() => {
-    if (timerInterval) return; // Don't start if already running
-    
-    const interval = setInterval(() => {
-      setElapsedTime(prev => {
-        const newTime = prev + 1;
-        // Update task in context every minute to avoid too frequent updates
-        if (newTime % 60 === 0) {
-          updateTask(task.id, { ...task, totalTimeSpent: newTime });
-        }
-        return newTime;
-      });
-    }, 1000);
-    
-    setTimerInterval(interval);
-    updateTask(task.id, { ...task, isTracking: true });
-  }, [task.id, timerInterval, updateTask]);
-
-  const stopTimer = useCallback(() => {
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      setTimerInterval(null);
-      // Save the final time when stopping
-      updateTask(task.id, { 
-        ...task, 
-        isTracking: false,
-        totalTimeSpent: elapsedTime 
-      });
-    }
-  }, [timerInterval, task, elapsedTime, updateTask]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (timerInterval) {
-        clearInterval(timerInterval);
-      }
-    };
-  }, [timerInterval]);
-
-  // Start/stop timer based on isTracking
-  useEffect(() => {
-    if (task.isTracking && !timerInterval) {
-      startTimer();
-    } else if (!task.isTracking && timerInterval) {
-      stopTimer();
-    }
-  }, [task.isTracking, timerInterval, startTimer, stopTimer]);
 
   const getStatusColor = () => {
     switch (task.status) {
@@ -95,50 +33,41 @@ export default function TaskItem({ task }: TaskItemProps) {
       ? 'in_progress'
       : 'completed';
     
-    // Stop timer if task is completed
-    if (newStatus === 'completed' && timerInterval) {
-      stopTimer();
+    // Stop tracking if task is completed or being uncompleted
+    if (task.isTracking || newStatus === 'completed') {
+      stopTracking(task.id);
     }
     
-    const updates: Partial<Task> = {
+    // Get the current tracked time before updating
+    const currentTimeSpent = getTrackedTime(task);
+    
+    updateTask(task.id, {
       status: newStatus,
       ...(newStatus === 'completed' ? { 
         completedAt: new Date(),
-        isTracking: false 
+        isTracking: false,
+        totalTimeSpent: currentTimeSpent // Preserve the total time spent
       } : {}),
       ...(newStatus === 'in_progress' && task.status === 'not_started' ? { 
         startedAt: new Date() 
       } : {})
-    };
-    
-    updateTask(task.id, updates);
+    });
   };
 
   const handleTimerToggle = () => {
-    if (task.status === 'completed') return; // Don't allow timer for completed tasks
-    
-    const updates: Partial<Task> = {
-      isTracking: !task.isTracking
-    };
+    if (task.status === 'completed') return;
 
-    // If starting timer on a not_started task, also change status to in_progress
-    if (!task.isTracking && task.status === 'not_started') {
-      updates.status = 'in_progress';
-      updates.startedAt = new Date();
-    }
-    
-    updateTask(task.id, updates);
-  };
-
-  const handleRestore = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('Restore clicked for task:', task.id);
-    try {
-      await restoreTask(task.id);
-      console.log('Task restored successfully');
-    } catch (error) {
-      console.error('Failed to restore task:', error);
+    if (task.isTracking) {
+      stopTracking(task.id);
+    } else {
+      // If starting timer on a not_started task, also change status to in_progress
+      if (task.status === 'not_started') {
+        updateTask(task.id, {
+          status: 'in_progress',
+          startedAt: new Date()
+        });
+      }
+      startTracking(task);
     }
   };
 
@@ -163,35 +92,26 @@ export default function TaskItem({ task }: TaskItemProps) {
               {task.title}
             </h4>
             <div className="flex items-center gap-1 ml-4">
-              {task.status === ('completed' as TaskStatus) ? (
-                <button
-                  onClick={handleRestore}
-                  type="button"
-                  className="p-1.5 rounded-full bg-yellow-500/30 text-yellow-300 hover:bg-yellow-500/40 transition-colors duration-300 cursor-pointer"
-                  title="Restore task"
-                >
-                  ↩️
-                </button>
-              ) : (
-                <button
-                  onClick={handleTimerToggle}
-                  disabled={task.status === ('completed' as TaskStatus)}
-                  className={`p-1.5 rounded-full transition-colors duration-300
-                             ${task.isTracking 
-                               ? 'bg-emerald-500/30 text-emerald-300 hover:bg-emerald-500/40' 
-                               : task.status === ('completed' as TaskStatus)
-                                 ? 'bg-white/5 text-white/30 cursor-not-allowed'
-                                 : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    {task.isTracking ? (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    ) : (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    )}
-                  </svg>
-                </button>
-              )}
+              <button
+                onClick={handleTimerToggle}
+                disabled={task.status === 'completed'}
+                className={`p-1.5 rounded-full transition-colors duration-300
+                           ${task.isTracking 
+                             ? 'bg-emerald-500/30 text-emerald-300 hover:bg-emerald-500/40' 
+                             : task.status === 'completed'
+                               ? 'bg-white/5 text-white/30 cursor-not-allowed opacity-50'
+                               : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+                aria-label={task.isTracking ? "Stop timer" : "Start timer"}
+                title={task.status === 'completed' ? "Cannot track completed task" : (task.isTracking ? "Stop timer" : "Start timer")}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  {task.isTracking ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  )}
+                </svg>
+              </button>
               <button
                 onClick={() => deleteTask(task.id)}
                 className="p-1.5 rounded-full bg-white/10 text-white/70 hover:bg-red-500/30 hover:text-red-300 transition-colors duration-300"
@@ -209,7 +129,7 @@ export default function TaskItem({ task }: TaskItemProps) {
           )}
           <div className="mt-2 flex items-center gap-2 text-xs">
             <span className={`${task.isTracking ? 'text-emerald-400' : 'text-white/60'}`}>
-              {formatTime(elapsedTime)}
+              {formatTaskDuration(getTrackedTime(task))}
               {task.isTracking && (
                 <span className="ml-1 animate-pulse">●</span>
               )}

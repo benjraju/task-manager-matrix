@@ -17,9 +17,14 @@ import {
   getDocs,
   DocumentData,
   serverTimestamp,
+  getDoc,
 } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { Task } from '@/lib/types/task';
+
+// Re-export Firestore utilities
+export { db, doc, collection, query, where, getDocs, getDoc };
+export type { DocumentData };
 
 // Test database connection
 export const testDatabaseConnection = async () => {
@@ -78,8 +83,16 @@ export const signOut = async () => {
 // Task management functions
 export const addTask = async (taskData: Omit<Task, 'id'>) => {
   try {
+    // Remove undefined values
+    const cleanTaskData = Object.entries(taskData).reduce((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = value;
+      }
+      return acc;
+    }, {} as Record<string, any>);
+
     const docRef = await addDoc(collection(db, 'tasks'), {
-      ...taskData,
+      ...cleanTaskData,
       userId: auth.currentUser?.uid,
     });
     return { id: docRef.id, error: null };

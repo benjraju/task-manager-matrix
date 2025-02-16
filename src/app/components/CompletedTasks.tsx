@@ -3,6 +3,7 @@
 import React from 'react';
 import { Task, Priority } from '@/lib/types/task';
 import TaskItem from './TaskItem';
+import { formatTaskDuration } from '@/lib/utils/taskUtils';
 
 const priorityLabels: Record<Priority, { title: string; color: string }> = {
   'urgent-important': {
@@ -66,7 +67,16 @@ export default function CompletedTasks({ tasks }: CompletedTasksProps) {
                 {tasks.map(task => (
                   <div key={task.id} className="relative">
                     <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-white/20" />
-                    <TaskItem key={task.id} task={task} />
+                    <div className="flex items-center justify-between p-4 bg-[#1E293B]/80 rounded-lg border border-white/10">
+                      <div>
+                        <h4 className="text-white line-through opacity-70">{task.title}</h4>
+                        <div className="flex items-center gap-2 mt-1 text-xs text-white/40">
+                          <span>{formatTaskDuration(task.totalTimeSpent || 0)}</span>
+                          <span>•</span>
+                          <span>Completed {new Date(task.completedAt || '').toLocaleTimeString()}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>

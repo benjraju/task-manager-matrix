@@ -1,10 +1,13 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
-import { TaskProvider } from '@/lib/contexts/TaskContext';
 import { AuthProvider } from '@/lib/contexts/AuthContext';
+import { UnifiedTaskProvider } from '@/lib/contexts/UnifiedTaskContext';
+import { FocusProvider } from '@/lib/contexts/FocusContext';
+import { TaskDataProvider } from '@/lib/contexts/TaskDataContext';
+import { TaskTrackingProvider } from '@/lib/contexts/TaskTrackingContext';
 import { Inter } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/react';
-import { FocusProvider } from '@/lib/contexts/FocusContext';
+import { Toaster } from 'react-hot-toast';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -29,11 +32,25 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          <TaskProvider>
-            <FocusProvider>
-              {children}
-            </FocusProvider>
-          </TaskProvider>
+          <TaskDataProvider>
+            <TaskTrackingProvider>
+              <UnifiedTaskProvider>
+                <FocusProvider>
+                  {children}
+                  <Toaster 
+                    position="top-right"
+                    toastOptions={{
+                      style: {
+                        background: '#1a1a1a',
+                        color: '#78A892',
+                        border: '1px solid rgba(120, 168, 146, 0.2)',
+                      },
+                    }}
+                  />
+                </FocusProvider>
+              </UnifiedTaskProvider>
+            </TaskTrackingProvider>
+          </TaskDataProvider>
         </AuthProvider>
         <Analytics />
       </body>

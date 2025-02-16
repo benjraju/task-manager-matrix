@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { useTask } from '@/lib/contexts/TaskContext';
+import { useTaskData } from '@/lib/contexts/TaskDataContext';
 import { Priority, Task } from '@/lib/types/task';
 import TaskCard from '@/app/components/TaskCard';
 import TaskItem from '@/app/components/TaskItem';
@@ -27,7 +27,7 @@ const priorityLabels: Record<Priority, { title: string; description: string }> =
 };
 
 export default function TaskGrid() {
-  const { tasks } = useTask();
+  const { tasks } = useTaskData();
 
   // Filter tasks by their quadrant
   const urgentImportant = tasks.filter(task => 
@@ -48,11 +48,11 @@ export default function TaskGrid() {
   );
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold text-white mb-6">Eisenhower Matrix</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="p-4 sm:p-6">
+      <h2 className="text-2xl font-bold text-white mb-4 sm:mb-6">Eisenhower Matrix</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         {/* Urgent & Important */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#1E3A8A] to-[#1E40AF] rounded-xl p-6 shadow-lg">
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#1E3A8A] to-[#1E40AF] rounded-xl p-4 sm:p-6 shadow-lg">
           <div className="absolute inset-0 bg-[url('/patterns/circuit-board.svg')] opacity-5" />
           <div className="relative">
             <div className="mb-4">
@@ -71,7 +71,7 @@ export default function TaskGrid() {
         </div>
 
         {/* Not Urgent & Important */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#047857] to-[#065F46] rounded-xl p-6 shadow-lg">
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#047857] to-[#065F46] rounded-xl p-4 sm:p-6 shadow-lg">
           <div className="absolute inset-0 bg-[url('/patterns/circuit-board.svg')] opacity-5" />
           <div className="relative">
             <div className="mb-4">
@@ -90,7 +90,7 @@ export default function TaskGrid() {
         </div>
 
         {/* Urgent & Not Important */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#9D174D] to-[#831843] rounded-xl p-6 shadow-lg">
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#9D174D] to-[#831843] rounded-xl p-4 sm:p-6 shadow-lg">
           <div className="absolute inset-0 bg-[url('/patterns/circuit-board.svg')] opacity-5" />
           <div className="relative">
             <div className="mb-4">
@@ -109,7 +109,7 @@ export default function TaskGrid() {
         </div>
 
         {/* Not Urgent & Not Important */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#7C3AED] to-[#6D28D9] rounded-xl p-6 shadow-lg">
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#7C3AED] to-[#6D28D9] rounded-xl p-4 sm:p-6 shadow-lg">
           <div className="absolute inset-0 bg-[url('/patterns/circuit-board.svg')] opacity-5" />
           <div className="relative">
             <div className="mb-4">

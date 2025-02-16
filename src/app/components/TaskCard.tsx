@@ -1,157 +1,77 @@
 'use client';
 
-import React, { useCallback } from 'react';
-import { Task, TaskStatus } from '@/lib/types/task';
-import { useTask } from '@/lib/contexts/TaskContext';
-import { useTimer } from '@/lib/hooks/useTimer';
+import React from 'react';
+import { Task } from '@/lib/types/task';
+import { useTaskData } from '@/lib/contexts/TaskDataContext';
+import { useTaskTracking } from '@/lib/contexts/TaskTrackingContext';
+import { PRIORITY_COLORS } from '@/lib/constants/taskConstants';
+import { formatTaskDuration } from '@/lib/utils/taskUtils';
 
 interface TaskCardProps {
   task: Task;
 }
 
 export default function TaskCard({ task }: TaskCardProps) {
-  const { updateTask, deleteTask, restoreTask } = useTask();
+  const { updateTask, deleteTask } = useTaskData();
+  const { startTracking, stopTracking, getTrackedTime } = useTaskTracking();
 
-  const handleTick = useCallback((currentTime: number) => {
-    updateTask(task.id, { totalTimeSpent: currentTime });
-  }, [task.id, updateTask]);
-
-  const { formattedTime } = useTimer({
-    initialTime: task.totalTimeSpent,
-    isRunning: task.isTracking,
-    onTick: handleTick
-  });
-
-  const toggleStatus = () => {
-    const newStatus: TaskStatus = task.status === 'not_started' 
-      ? 'in_progress' 
-      : task.status === 'in_progress' 
-        ? 'completed' 
-        : 'not_started';
-    
-    updateTask(task.id, { 
-      status: newStatus,
-      ...(newStatus === 'completed' ? { completedAt: new Date(), isTracking: false } : {}),
-      ...(newStatus === 'in_progress' && task.status === 'not_started' ? { startedAt: new Date() } : {})
-    });
-  };
-
-  const toggleTracking = () => {
-    if (task.status === 'completed') return;
-    
-    if (!task.isTracking && task.status === 'not_started') {
-      updateTask(task.id, {
-        isTracking: true,
-        status: 'in_progress' as const,
-        startedAt: new Date()
-      });
+  const handleToggleTracking = () => {
+    if (task.isTracking) {
+      stopTracking(task.id);
     } else {
-      updateTask(task.id, { 
-        isTracking: !task.isTracking
-      });
+      startTracking(task);
     }
   };
 
-  const handleDelete = () => {
-    deleteTask(task.id);
+  const handleStatusChange = (newStatus: Task['status']) => {
+    updateTask(task.id, { status: newStatus });
   };
 
-  const handleRestore = () => {
-    restoreTask(task.id);
-  };
-
-  const getStatusColor = () => {
-    switch (task.status) {
-      case 'not_started':
-        return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
-      case 'in_progress':
-        return 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300';
-      case 'completed':
-        return 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300';
-      default:
-        return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
-    }
-  };
+  const priorityColors = PRIORITY_COLORS[task.priority];
 
   return (
-    <div className={`
-      bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 
-      border border-gray-200 dark:border-gray-700
-      ${task.isTracking ? 'ring-2 ring-blue-500 dark:ring-blue-400' : ''}
-      ${task.status === 'completed' ? 'opacity-75' : ''}
-      transition-all duration-200
-      group
-    `}>
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={toggleStatus}
-              className="flex-shrink-0 w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              style={{
-                background: task.status === 'completed' ? 'currentColor' : 'transparent',
-                borderColor: task.status === 'completed' ? '#10B981' : undefined
-              }}
-            >
-              {task.status === 'completed' && (
-                <svg className="w-full h-full text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              )}
-            </button>
-            <h3 className={`font-medium ${
-              task.status === 'completed' 
-                ? 'line-through text-gray-500 dark:text-gray-400' 
-                : 'text-gray-900 dark:text-white'
-            }`}>
-              {task.title}
-            </h3>
-          </div>
-          {task.description && (
-            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 ml-7">
-              {task.description}
-            </p>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          {task.status === ('completed' as TaskStatus) ? (
-            <button
-              onClick={handleRestore}
-              className="p-1.5 rounded-md text-yellow-600 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:bg-yellow-900/20"
-              title="Restore task"
-            >
-              ↩️
-            </button>
-          ) : (
-            <button
-              onClick={toggleTracking}
-              className={`p-1.5 rounded-md ${
-                task.isTracking
-                  ? 'text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/50'
-                  : 'text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400'
-              }`}
-              disabled={task.status === 'completed'}
-              title={task.isTracking ? 'Pause tracking' : 'Start tracking'}
-            >
-              {task.isTracking ? '⏸' : '▶️'}
-            </button>
-          )}
+    <div className={`${priorityColors.bg} ${priorityColors.darkBg} p-4 rounded-lg shadow-sm`}>
+      <div className="flex justify-between items-start mb-2">
+        <h3 className={`${priorityColors.text} ${priorityColors.darkText} font-semibold`}>
+          {task.title}
+        </h3>
+        <button
+          onClick={() => deleteTask(task.id)}
+          className="text-gray-500 hover:text-red-500"
+        >
+          ×
+        </button>
+      </div>
+      {task.description && (
+        <p className="text-gray-600 dark:text-gray-300 text-sm mb-2">
+          {task.description}
+        </p>
+      )}
+      <div className="flex justify-between items-center mt-2">
+        <select
+          value={task.status}
+          onChange={(e) => handleStatusChange(e.target.value as Task['status'])}
+          className="text-sm bg-transparent border rounded px-2 py-1"
+        >
+          <option value="not_started">Not Started</option>
+          <option value="in_progress">In Progress</option>
+          <option value="completed">Completed</option>
+        </select>
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-gray-600 dark:text-gray-300">
+            {formatTaskDuration(getTrackedTime(task))}
+          </span>
           <button
-            onClick={handleDelete}
-            className="p-1.5 rounded-md text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-opacity"
-            title="Delete task"
+            onClick={handleToggleTracking}
+            className={`px-2 py-1 text-sm rounded ${
+              task.isTracking
+                ? 'bg-red-500 text-white'
+                : 'bg-green-500 text-white'
+            }`}
           >
-            🗑️
+            {task.isTracking ? 'Stop' : 'Start'}
           </button>
         </div>
-      </div>
-      <div className="mt-3 flex items-center justify-between text-xs">
-        <span className={`px-2 py-1 rounded-md ${getStatusColor()}`}>
-          {task.status.replace('_', ' ')}
-        </span>
-        <span className="text-gray-500 dark:text-gray-400 tabular-nums" title="Time spent">
-          ⏱ {formattedTime}
-        </span>
       </div>
     </div>
   );

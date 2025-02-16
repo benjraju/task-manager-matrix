@@ -36,14 +36,15 @@ export default function MatrixRain() {
     const dropSpeed = 0.8; // Controls how fast the characters fall
     const spawnRate = 0.02; // Controls how often new drops are created (0-1)
 
-    const draw = () => {
-      // Create a semi-transparent fade effect
-      ctx.fillStyle = `rgba(15, 23, 42, ${fadeStrength})`; // Using the background color
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Matrix colors
+    const matrixGreen = '#0F1B0F'; // Very dark green for background
+    const matrixBright = '#22FF22'; // Bright green for leading characters
+    const matrixDim = '#003B00'; // Darker green for trailing characters
 
-      // Set the character style
-      ctx.fillStyle = '#78A892'; // Main color matching your theme
-      ctx.font = `${charSize}px monospace`;
+    const draw = () => {
+      // Create a semi-transparent fade effect with very dark green
+      ctx.fillStyle = `rgba(0, 5, 0, ${fadeStrength})`; 
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Draw the characters
       for (let i = 0; i < drops.length; i++) {
@@ -54,13 +55,26 @@ export default function MatrixRain() {
         const x = i * charSize;
         const y = drops[i] * charSize;
 
-        // Draw the character with a gradient effect
+        // Create gradient for each drop
         const gradient = ctx.createLinearGradient(x, y - charSize * 4, x, y);
-        gradient.addColorStop(0, 'rgba(120, 168, 146, 0)'); // Fade out at the top
-        gradient.addColorStop(0.4, 'rgba(120, 168, 146, 0.5)'); // Mid fade
-        gradient.addColorStop(1, 'rgba(120, 168, 146, 1)'); // Full strength at the bottom
-        ctx.fillStyle = gradient;
+        gradient.addColorStop(0, 'rgba(0, 59, 0, 0)'); // Fade to transparent
+        gradient.addColorStop(0.4, 'rgba(0, 59, 0, 0.5)'); // Mid fade
+        gradient.addColorStop(1, 'rgba(34, 255, 34, 0.8)'); // Brightest at bottom
+
+        // Draw main character
+        ctx.font = `${charSize}px monospace`;
+        
+        // Leading character (brighter)
+        if (Math.random() < 0.1) { // 10% chance for bright character
+          ctx.fillStyle = matrixBright;
+          ctx.globalAlpha = 0.8;
+        } else {
+          ctx.fillStyle = matrixDim;
+          ctx.globalAlpha = 0.5;
+        }
+        
         ctx.fillText(char, x, y);
+        ctx.globalAlpha = 1;
 
         // Reset drop when it reaches bottom or randomly
         if (y > canvas.height || Math.random() > 0.98) {
@@ -93,7 +107,7 @@ export default function MatrixRain() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none opacity-30"
+      className="fixed inset-0 pointer-events-none opacity-20"
       style={{ zIndex: 0 }}
     />
   );
