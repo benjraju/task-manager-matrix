@@ -1,4 +1,4 @@
-import { Task } from '../types/Task';
+import { Task } from '../types/task';
 
 export class TaskAutomation {
   // Analyze task patterns and suggest automations
