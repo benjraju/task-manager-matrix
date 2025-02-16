@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { Task } from '@/lib/types/task';
-import { formatTime, getEisenhowerQuadrant } from '@/lib/utils/taskUtils';
+import { getEisenhowerQuadrant } from '@/lib/utils/taskUtils';
+import { formatTime } from '@/lib/utils/timeUtils';
 import { PlayIcon, PauseIcon, CheckIcon, PencilIcon } from '@heroicons/react/24/solid';
 import { format } from 'date-fns';
 
