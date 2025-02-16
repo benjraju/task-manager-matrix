@@ -26,7 +26,7 @@ export default function AddTaskForm() {
         isTracking: false,
         startedAt: undefined,
         completedAt: undefined,
-        userId: user.uid,
+        userId: user.uid
       });
       setTitle('');
       setDescription('');
